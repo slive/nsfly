@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>nsfly</artifactId>
+        <groupId>slive.nsfly</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>transport</artifactId>
+    <name>transport</name>
+    <packaging>pom</packaging>
+    <description>基于netty二次包装的通信类，目标是有针对性的简化对netty中的tcp/http/ws;kcp/kws使用</description>
+
+    <modules>
+        <module>inter</module>
+        <module>tcp</module>
+        <module>kcp</module>
+        <module>httpx</module>
+        <module>ws</module>
+        <module>kws</module>
+        <module>udp</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>slive.nsfly</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>
