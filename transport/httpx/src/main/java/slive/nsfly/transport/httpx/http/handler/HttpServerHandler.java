@@ -13,5 +13,5 @@ import slive.nsfly.transport.inter.conn.handler.ConnHandlerContext;
  */
 public interface HttpServerHandler extends ConnExtHandler {
 
-    FullHttpResponse onHandle(ConnHandlerContext ctx, FullHttpRequest request, HttpHandshakeContext handshakeCtx);
+    FullHttpResponse onHandle(ConnHandlerContext ctx, HttpHandshakeContext handshakeCtx);
 }

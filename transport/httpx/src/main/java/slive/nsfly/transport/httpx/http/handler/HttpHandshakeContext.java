@@ -1,5 +1,8 @@
 package slive.nsfly.transport.httpx.http.handler;
 
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
+import slive.nsfly.transport.httpx.common.HttpXUtils;
 import slive.nsfly.transport.inter.conn.handler.frame.HandshakeContext;
 
 import java.net.URI;
@@ -16,18 +19,22 @@ import java.util.Set;
  */
 public class HttpHandshakeContext extends HandshakeContext {
 
-    private URI uri = null;
+    private FullHttpRequest request = null;
 
     private Map<String, Object> queryParams = null;
 
     private Map<String, Object> bodyParams = null;
 
-    public URI getUri() {
-        return uri;
+    public FullHttpRequest getRequest() {
+        return request;
     }
 
-    public void setUri(URI uri) {
-        this.uri = uri;
+    public void setRequest(FullHttpRequest request) {
+        this.request = request;
+        if (request != null) {
+            setQueryParams(HttpXUtils.converUrlParams(request.uri()));
+            setBodyParams(HttpXUtils.convertBodyParams(request));
+        }
     }
 
     public Map<String, Object> getQueryParams() {

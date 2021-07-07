@@ -13,10 +13,14 @@ import org.slf4j.LoggerFactory;
 import slive.nsfly.transport.httpx.common.HttpXConstants;
 import slive.nsfly.transport.httpx.common.HttpXUtils;
 import slive.nsfly.transport.httpx.http.conf.HttpConf;
+import slive.nsfly.transport.httpx.http.conf.HttpConnImpl;
+import slive.nsfly.transport.httpx.http.conn.HttpConn;
+import slive.nsfly.transport.httpx.http.handler.HttpHandshakeContext;
 import slive.nsfly.transport.httpx.http.handler.HttpServerHandler;
 import slive.nsfly.transport.httpx.websocket.conf.WsServerConf;
 import slive.nsfly.transport.httpx.websocket.conn.WsConnImpl;
 import slive.nsfly.transport.httpx.websocket.handler.frame.WsFrameHandler;
+import slive.nsfly.transport.inter.common.map.SimpleMap;
 import slive.nsfly.transport.inter.conn.Conn;
 import slive.nsfly.transport.inter.conn.ConnType;
 import slive.nsfly.transport.inter.conn.handler.BaseConnHandler;
@@ -123,9 +127,6 @@ public class HttpXServerSocketImpl<C extends HttpXServerSocketConf> extends TcpS
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
             String connId = HttpXUtils.getConnId(ctx, connType);
-            if (log.isDebugEnabled()) {
-                log.debug("rev {} message, connId:{}", connType, connId);
-            }
             if (msg instanceof WebSocketFrame) {
                 // 接收和处理常规的websocket信息
                 Conn conn = getChildren().get(connId);
@@ -139,70 +140,121 @@ public class HttpXServerSocketImpl<C extends HttpXServerSocketConf> extends TcpS
                 if (msg instanceof FullHttpRequest) {
                     // http请求信息
                     FullHttpRequest request = ((FullHttpRequest) msg);
-                    String uri = request.uri();
-                    URI u = new URI(uri);
-                    log.info("request uri:{}", uri);
-                    String path = u.getPath();
-                    boolean isWebSocket = HttpXUtils.isWebSocket(request);
-                    if (isWebSocket) {
-                        WsFrameHandler wsFrameHandler = patternWsHandler(path);
-                        if (wsFrameHandler != null) {
-                            if (!request.decoderResult().isSuccess()) {
-                                log.warn("response ws upgrade decoder failed, channelId:{}", connId);
-                                responseError(ctx, request, HttpResponseStatus.BAD_REQUEST);
-                                return;
-                            }
-
-                            // 处理websocket的握手
-                            // TODO 如何配置？
-                            WsServerConf wsServerConf = WS_SERVER_CONF;
-                            HttpConf childConf = getConf().getChildConf();
-                            if (childConf instanceof WsServerConf) {
-                                wsServerConf = (WsServerConf) childConf;
-                            }
-                            Channel channel = ctx.channel();
-                            String wsFullUrl = getWsFullUrl(channel, request, path);
-                            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(wsFullUrl, wsServerConf.getSubprotocol(), wsServerConf.isAllowExtentions());
-                            WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(request);
-                            boolean result = handshaker.handshake(channel, request).await(getConf().getConnectTimeout(), TimeUnit.MILLISECONDS);
-                            log.info("handshaker requestUrl:{}, result:{}", wsFullUrl, result);
-                            if (result) {
-                                // 添加握手处理
-                                Conn conn = new WsConnImpl(this, getChildHandler(), true, channel);
-                                conn.setConf(childConf);
-                                // TODO 如果加上connType, id对应不上...，统一用外部的connId
-                                // getChildren().add(conn.getId(), conn);
-                                getChildren().add(connId, conn);
-                                // 记录patternhandler
-                                BaseConnHandler.addPatternHandler(conn, wsFrameHandler);
-
-                                // 触发的连接处理
-                                ConnHandlerContext ctx1 = new ConnHandlerContext(conn);
-                                HandshakeContext handshakeContext = new HandshakeContext();
-                                handshakeContext.setAllParams(HttpXUtils.converParams(request.uri()));
-                                ctx1.setAttach(handshakeContext);
-                                getChildHandler().onConnect(ctx1);
-                                return;
-                            } else {
-                                log.error("handshake fail, requestUrl:{}", wsFullUrl);
-                                responseError(ctx, request, HttpResponseStatus.BAD_GATEWAY);
-                                return;
-                            }
+                    try {
+                        String uri = request.uri();
+                        URI requestUri = new URI(uri);
+                        String path = requestUri.getPath();
+                        boolean isWebSocket = HttpXUtils.isWebSocket(request);
+                        log.info("handle request uri:{}, isWebSocket:{}", uri, isWebSocket);
+                        if (isWebSocket) {
+                            handleUpgrade(ctx, connId, request, requestUri);
+                        } else {
+                            handleHttp(ctx, connId, request, requestUri);
                         }
-                    } else {
-                        HttpServerHandler httpServerHandler = patternHttpHandler(path);
-                        if (httpServerHandler != null) {
-                            // TODO 待实现
-                            return;
-                        }
+                    } catch (Exception ex) {
+                        log.error("handle request error.", ex);
+                        responseError(ctx, request, HttpResponseStatus.INTERNAL_SERVER_ERROR);
                     }
-
-                    // 未找到uri
-                    log.error("invalidate uri:{}", uri);
-                    responseError(ctx, request, HttpResponseStatus.NOT_FOUND);
-                    return;
                 }
             }
+        }
+    }
+
+    private void handleUpgrade(ChannelHandlerContext ctx, String connId, FullHttpRequest request, URI requestUri) throws InterruptedException {
+        String path = requestUri.getPath();
+        WsFrameHandler wsFrameHandler = patternWsHandler(path);
+        if (wsFrameHandler != null) {
+            if (!request.decoderResult().isSuccess()) {
+                log.warn("websocket upgrade decoder failed, channelId:{}", connId);
+                responseError(ctx, request, HttpResponseStatus.BAD_REQUEST);
+                return;
+            }
+
+            // 处理websocket的握手
+            // TODO 如何配置？
+            WsServerConf wsServerConf = WS_SERVER_CONF;
+            HttpConf childConf = getConf().getChildConf();
+            if (childConf instanceof WsServerConf) {
+                wsServerConf = (WsServerConf) childConf;
+            }
+
+            Channel channel = ctx.channel();
+            String wsFullUrl = getWsFullUrl(channel, request, path);
+            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(wsFullUrl, wsServerConf.getSubprotocol(), wsServerConf.isAllowExtentions());
+            WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(request);
+            boolean result = handshaker.handshake(channel, request).await(getConf().getConnectTimeout(), TimeUnit.MILLISECONDS);
+            log.info("websocket handshake requestUrl:{}, result:{}", wsFullUrl, result);
+            if (result) {
+                // 添加握手处理
+                Conn conn = new WsConnImpl(this, getChildHandler(), true, channel);
+                conn.setConf(childConf);
+                // TODO 如果加上connType, id对应不上...，统一用外部的connId
+                // getChildren().add(conn.getId(), conn);
+                getChildren().add(connId, conn);
+                // 记录wspatternhandler
+                BaseConnHandler.addPatternHandler(conn, wsFrameHandler);
+
+                // 触发的连接处理
+                ConnHandlerContext ctx1 = new ConnHandlerContext(conn);
+                HandshakeContext handshakeContext = new HandshakeContext();
+                handshakeContext.setAllParams(HttpXUtils.converUrlParams(request.uri()));
+                ctx1.setAttach(handshakeContext);
+                getChildHandler().onConnect(ctx1);
+                return;
+            } else {
+                log.error("websocket handshake fail, requestUrl:{}", wsFullUrl);
+                responseError(ctx, request, HttpResponseStatus.BAD_GATEWAY);
+                return;
+            }
+        } else {
+            // 未找到uri
+            log.error("invalidate websocket uri:{}", request.uri());
+            responseError(ctx, request, HttpResponseStatus.NOT_FOUND);
+        }
+    }
+
+    private void handleHttp(ChannelHandlerContext ctx, String connId, FullHttpRequest request, URI requestUri) {
+        String path = requestUri.getPath();
+        HttpServerHandler httpServerHandler = patternHttpHandler(path);
+        if (httpServerHandler != null) {
+            ConnHandlerContext ctx1 = null;
+            SimpleMap<Conn> children = getChildren();
+            HttpConn httpConn = (HttpConn) children.get(connId);
+            if (httpConn == null) {
+                synchronized (children) {
+                    // 二次校验
+                    httpConn = (HttpConn) children.get(connId);
+                    if (httpConn == null) {
+                        httpConn = new HttpConnImpl(this, getChildHandler(), true, ctx.channel());
+                        httpConn.setConf(getConf().getChildConf());
+                        ctx1 = new ConnHandlerContext(httpConn, request);
+                        children.add(connId, httpConn);
+                        // 记录wspatternhandler
+                        BaseConnHandler.addPatternHandler(httpConn, httpServerHandler);
+                        // 建立链接
+                        getChildHandler().onConnect(ctx1);
+                    }
+                }
+            }
+            if (ctx1 == null) {
+                ctx1 = new ConnHandlerContext(httpConn, request);
+            }
+            // 封装参数
+            HttpHandshakeContext handshakeCtx = new HttpHandshakeContext();
+            handshakeCtx.setRequest(request);
+            ctx1.setAttach(handshakeCtx);
+
+            // 读信息处理
+            getChildHandler().onRead(ctx1);
+            // http-response处理
+            FullHttpResponse response = ctx1.getRet();
+            if (response != null) {
+                httpConn.writeResponse(response);
+            }
+        } else {
+            // 未找到uri
+            log.error("invalidate http uri:{}", request.uri());
+            responseError(ctx, request, HttpResponseStatus.NOT_FOUND);
         }
     }
 
