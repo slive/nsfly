@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import slive.nsfly.transport.httpx.common.HttpXConstants;
 import slive.nsfly.transport.httpx.common.HttpXUtils;
+import slive.nsfly.transport.httpx.handler.HttpXBaseHandler;
 import slive.nsfly.transport.httpx.http.conf.HttpConf;
 import slive.nsfly.transport.httpx.http.conf.HttpConnImpl;
 import slive.nsfly.transport.httpx.http.conn.HttpConn;
@@ -46,11 +47,11 @@ public class HttpXServerSocketImpl<C extends HttpXServerSocketConf> extends TcpS
     private boolean supportWs = false;
 
     public HttpXServerSocketImpl(Object parent, C serverConf) {
-        super(parent, serverConf, new HttpXServerBaseHandler());
+        super(parent, serverConf, new HttpXBaseHandler());
     }
 
     public HttpXServerSocketImpl(C serverConf) {
-        super(serverConf, new HttpXServerBaseHandler());
+        super(serverConf, new HttpXBaseHandler());
     }
 
     @Override

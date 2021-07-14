@@ -33,12 +33,16 @@ public class TcpClientSocketImpl<C extends TcpClientSocketConf> extends BaseClie
 
     private Bootstrap bootstrap = null;
 
-    public TcpClientSocketImpl(C clientConf, ConnHandler handler) {
-        super(null, clientConf, handler);
+    public TcpClientSocketImpl(C clientSocketConf, ConnHandler handler) {
+        super(null, clientSocketConf, handler);
     }
 
-    public TcpClientSocketImpl(Object parent, C clientConf, ConnHandler handler) {
-        super(parent, clientConf, handler);
+    public TcpClientSocketImpl(Object parent, C clientSocketConf, ConnHandler handler) {
+        super(parent, clientSocketConf, handler);
+    }
+
+    public TcpClientSocketImpl(Object parent, C clientSocketConf) {
+        super(parent, clientSocketConf);
     }
 
     @Override

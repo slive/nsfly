@@ -38,9 +38,13 @@ public abstract class BaseClientSocket<C extends ClientSocketConf> extends BaseS
 
     private Map<String, Object> dialParams = null;
 
-    public BaseClientSocket(Object parent, C clientConf, ConnHandler handler) {
-        super(parent, clientConf, false);
+    public BaseClientSocket(Object parent, C clientSocketConf, ConnHandler handler) {
+        super(parent, clientSocketConf, false);
         setHandler(handler);
+    }
+
+    public BaseClientSocket(Object parent, C clientSocketConf) {
+        super(parent, clientSocketConf, false);
     }
 
     @Override

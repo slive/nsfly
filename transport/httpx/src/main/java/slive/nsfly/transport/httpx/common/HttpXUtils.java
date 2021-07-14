@@ -27,6 +27,40 @@ public class HttpXUtils extends TcpUtils {
 
     private static final String SERVER_NAME = "nsfly-agent";
 
+    /**
+     * 转换为url的query（转码后的）
+     *
+     * @param params
+     * @return
+     */
+    public static String params2Query(Map<String, Object> params) {
+        if (params != null && !params.isEmpty()) {
+            StringBuilder sbd = new StringBuilder();
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                if (value instanceof String) {
+                    value = encodeStr((String) value);
+                    sbd.append(key).append("=").append(value).append("&");
+                } else if (value instanceof List) {
+                    List ls = ((List) value);
+                    for (Object v : ls) {
+                        String vs = v.toString();
+                        vs = encodeStr(vs);
+                        sbd.append(key).append("=").append(vs).append("&");
+                    }
+                } else {
+                    String vs = value.toString();
+                    vs = encodeStr(vs);
+                    sbd.append(key).append("=").append(vs).append("&");
+                }
+            }
+            // 去除最后一个"&"符号
+            return sbd.substring(0, sbd.length() - 1);
+        }
+        return null;
+    }
+
     public static Map<String, Object> converUrlParams(String uncodeUrl) {
         Map<String, Object> retParams = new LinkedHashMap<>();
         if (uncodeUrl != null) {

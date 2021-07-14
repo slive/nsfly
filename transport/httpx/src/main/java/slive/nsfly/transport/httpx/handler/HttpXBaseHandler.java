@@ -1,4 +1,4 @@
-package slive.nsfly.transport.httpx.server.socket;
+package slive.nsfly.transport.httpx.handler;
 
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
@@ -19,9 +19,9 @@ import slive.nsfly.transport.inter.conn.handler.frame.HandshakeContext;
  * @author Slive
  * @date 2021/6/28 8:58 上午
  */
-public class HttpXServerBaseHandler extends BaseConnHandler {
+public class HttpXBaseHandler extends BaseConnHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(HttpXServerBaseHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(HttpXBaseHandler.class);
 
     @Override
     public void preWrite(ConnHandlerContext ctx) {
