@@ -1,0 +1,17 @@
+.git
+
+.DS_Store
+
+.idea
+.classpath
+.project
+.vscode
+.iml
+
+.out
+.jar
+.class
+
+bin
+dest
+target
