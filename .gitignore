@@ -2,15 +2,15 @@
 
 .DS_Store
 
-.idea
-.classpath
-.project
-.vscode
-.iml
+*.idea
+*.classpath
+*.project
+*.vscode
+*.iml
 
-.out
-.jar
-.class
+*.out
+*.jar
+*.class
 
 bin
 dest
