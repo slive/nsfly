@@ -52,29 +52,6 @@ public class TcpConnImpl extends BaseConn implements TcpConn {
 
     @Override
     protected WriteObject convertWriteObject(Object msg) {
-        Object finalWrite = msg;
-        int byteNum = 0;
-        // 支持byte[]和ByteBuf方式发送
-        if (msg instanceof byte[]) {
-            byteNum = ((byte[]) msg).length;
-            ByteBuf buffer = channel.alloc().buffer(byteNum);
-            buffer.writeBytes((byte[]) msg);
-            finalWrite = buffer;
-        } else if (msg instanceof ByteBuf) {
-            byteNum = ((ByteBuf) msg).readableBytes();
-        } else {
-            // TODO  默认写字符串
-            String s = msg.toString();
-            byte[] bytes = s.getBytes();
-            byteNum = bytes.length;
-            ByteBuf buffer = channel.alloc().buffer(byteNum);
-            buffer.writeBytes(bytes);
-            finalWrite = buffer;
-        }
-
-        WriteObject writeObject = new WriteObject();
-        writeObject.setByteNum(byteNum);
-        writeObject.setFinalMsg(finalWrite);
-        return writeObject;
+       return defaultConvertWriteObject(channel, msg);
     }
 }

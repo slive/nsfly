@@ -154,7 +154,7 @@ public abstract class BaseClientSocket<C extends ClientSocketConf> extends BaseS
                 // 默认为1
                 workThreads = 1;
             }
-            workLoopGroup = new NioEventLoopGroup(workThreads, ThreadPoolUtils.newThreadFactory(prefixWork));
+            workLoopGroup = new NioEventLoopGroup(workThreads, ThreadPoolUtils.createThreadFactory(prefixWork));
         }
     }
 
@@ -170,7 +170,7 @@ public abstract class BaseClientSocket<C extends ClientSocketConf> extends BaseS
             if (StringUtils.isBlank(prefix)) {
                 prefix = THREAD_PREFIX_WORK;
             }
-            GLOBAL_WORK_LOOPGROUP = new NioEventLoopGroup(workThreads, ThreadPoolUtils.newThreadFactory(prefix));
+            GLOBAL_WORK_LOOPGROUP = new NioEventLoopGroup(workThreads, ThreadPoolUtils.createThreadFactory(prefix));
         }
     }
 }

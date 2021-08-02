@@ -63,7 +63,7 @@ public class TcpServerSocketImpl<C extends TcpServerSocketConf> extends BaseServ
             ByteBufAllocator allocator = getByteBufAllocator(childConf);
             EventLoopGroup bossLoopGroup = getBossLoopGroup();
             if (bossLoopGroup == null) {
-                bossLoopGroup = new NioEventLoopGroup(1, ThreadPoolUtils.newThreadFactory(THREAD_PREFIX_BOSS));
+                bossLoopGroup = new NioEventLoopGroup(1, ThreadPoolUtils.createThreadFactory(THREAD_PREFIX_BOSS));
             }
             serverBootstrap.group(bossLoopGroup, getWorkLoopGroup())
                     .channel(NioServerSocketChannel.class)
@@ -83,12 +83,14 @@ public class TcpServerSocketImpl<C extends TcpServerSocketConf> extends BaseServ
                     });
             ret = serverBootstrap.bind(serverConf.getIp(), serverConf.getPort()).await(serverConf.getConnectTimeout(), TimeUnit.MILLISECONDS);
             if (!ret) {
-                log.error("start to listen {} server failed, spendTime:{}", connType, (System.currentTimeMillis() - startTime));
+                log.error("listen {} server timeout, spendTime:{}", connType, (System.currentTimeMillis() - startTime));
+                close();
             } else {
-                log.info("start to listen {} server success, spendTime:{}", connType, (System.currentTimeMillis() - startTime));
+                log.info("listen {} server success, spendTime:{}", connType, (System.currentTimeMillis() - startTime));
             }
         } catch (Exception ex) {
-            log.error("start to listen {} server failed, error:", connType, ex);
+            log.error("listen {} server failed, error:{}", connType, ex);
+            close();
         }
         return ret;
     }

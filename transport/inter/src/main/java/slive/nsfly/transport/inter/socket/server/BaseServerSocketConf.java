@@ -33,9 +33,25 @@ public class BaseServerSocketConf extends BaseSocketConf implements ServerSocket
         setWorkThreads(Runtime.getRuntime().availableProcessors() * 1);
     }
 
+    protected BaseServerSocketConf(String ip, int port, String connType) {
+        super(ip, port, connType);
+        // 默认work线程，可自行设置
+        setWorkThreads(Runtime.getRuntime().availableProcessors() * 1);
+    }
+
+    protected BaseServerSocketConf(String ip, int port, ConnType connType) {
+        super(ip, port, connType);
+        // 默认work线程，可自行设置
+        setWorkThreads(Runtime.getRuntime().availableProcessors() * 1);
+    }
+
     @Override
     public <T> T getChildConf() {
         return (T) childConf;
+    }
+
+    protected void setChildConf(Object childConf) {
+        this.childConf = childConf;
     }
 
     @Override

@@ -103,11 +103,4 @@ public interface SocketConf {
      * @param workThreads
      */
     void setWorkThreads(int workThreads);
-
-    /**
-     * 获取扩展的配置
-     *
-     * @return
-     */
-    <E extends Object> E getExtConf();
 }

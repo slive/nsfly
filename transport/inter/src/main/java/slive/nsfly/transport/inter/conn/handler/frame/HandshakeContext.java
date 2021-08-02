@@ -17,7 +17,9 @@ public class HandshakeContext {
     private String path;
 
     // 握手时传递的参数
-    protected Map<String, Object> allParams = new LinkedHashMap<>();
+    protected Map<String, Object> allParam = new LinkedHashMap<>();
+
+    protected Map<String, Object> attach = new LinkedHashMap<>();
 
     /**
      * 获取握手时的路径
@@ -42,21 +44,30 @@ public class HandshakeContext {
      *
      * @return
      */
-    public Map<String, Object> getAllParams() {
-        return allParams;
+    public Map<String, Object> getAllParam() {
+        return allParam;
     }
 
     /**
      * 设置握手时传递的参数
      *
-     * @param allParams
+     * @param allParam
      */
-    public void setAllParams(Map<String, Object> allParams) {
-        this.allParams = allParams;
+    public void setAllParam(Map<String, Object> allParam) {
+        this.allParam = allParam;
+    }
+
+    /**
+     * 额外的参数等
+     *
+     * @return
+     */
+    public Map<String, Object> getAttach() {
+        return attach;
     }
 
     public String getFirstValue(String key) {
-        Object param = getAllParams().get(key);
+        Object param = getAllParam().get(key);
         if (param == null) {
             return null;
         }

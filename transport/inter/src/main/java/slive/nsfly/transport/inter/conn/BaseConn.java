@@ -1,5 +1,6 @@
 package slive.nsfly.transport.inter.conn;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.Future;
@@ -13,6 +14,8 @@ import slive.nsfly.transport.inter.conn.monitor.ConnStatis;
 import slive.nsfly.transport.inter.exception.TransportRuntimeException;
 import slive.nsfly.transport.inter.socket.Socket;
 import slive.nsfly.transport.inter.socket.conf.SocketConf;
+
+import java.net.SocketAddress;
 
 /**
  * 描述：<pre>
@@ -35,6 +38,10 @@ public abstract class BaseConn extends SimpleMapImpl<Object> implements Conn {
     private boolean allowWrite;
 
     private ConnStatis statis = null;
+
+    private SocketAddress localAddr;
+
+    private SocketAddress remoteAddr;
 
     protected Conn self = null;
 
@@ -80,6 +87,8 @@ public abstract class BaseConn extends SimpleMapImpl<Object> implements Conn {
         this.self = this;
         this.setChannel(channel);
         this.setId(channel);
+        this.setLocalAddr(channel.localAddress());
+        this.setRemoteAddr(channel.remoteAddress());
     }
 
     @Override
@@ -206,6 +215,24 @@ public abstract class BaseConn extends SimpleMapImpl<Object> implements Conn {
         // TODO
     }
 
+    @Override
+    public SocketAddress getLocalAddr() {
+        return localAddr;
+    }
+
+    protected void setLocalAddr(SocketAddress localAddr) {
+        this.localAddr = localAddr;
+    }
+
+    @Override
+    public SocketAddress getRemoteAddr() {
+        return remoteAddr;
+    }
+
+    protected void setRemoteAddr(SocketAddress remoteAddr) {
+        this.remoteAddr = remoteAddr;
+    }
+
     protected <M> boolean _write(M msg, boolean sync, ConnListener listener) {
         if (isAllowWrite()) {
             if (log.isDebugEnabled()) {
@@ -280,12 +307,45 @@ public abstract class BaseConn extends SimpleMapImpl<Object> implements Conn {
         }
     }
 
+    /**
+     * 转换数据，在ConnHandler#preWrite之后调用
+     *
+     * @param msg
+     * @return
+     */
     protected abstract WriteObject convertWriteObject(Object msg);
+
+    protected static WriteObject defaultConvertWriteObject(Channel channel, Object msg) {
+        Object finalWrite = msg;
+        int byteNum = 0;
+        // 支持byte[]和ByteBuf方式发送
+        if (msg instanceof byte[]) {
+            byteNum = ((byte[]) msg).length;
+            ByteBuf buffer = channel.alloc().buffer(byteNum);
+            buffer.writeBytes((byte[]) msg);
+            finalWrite = buffer;
+        } else if (msg instanceof ByteBuf) {
+            byteNum = ((ByteBuf) msg).readableBytes();
+        } else {
+            // TODO  默认写字符串
+            String s = msg.toString();
+            byte[] bytes = s.getBytes();
+            byteNum = bytes.length;
+            ByteBuf buffer = channel.alloc().buffer(byteNum);
+            buffer.writeBytes(bytes);
+            finalWrite = buffer;
+        }
+
+        WriteObject writeObject = new WriteObject();
+        writeObject.setByteNum(byteNum);
+        writeObject.setFinalMsg(finalWrite);
+        return writeObject;
+    }
 
     /**
      * 写对象，包括num和msg
      */
-    public class WriteObject {
+    public static class WriteObject {
 
         private int byteNum;
 

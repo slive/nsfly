@@ -198,7 +198,7 @@ public class HttpXServerSocketImpl<C extends HttpXServerSocketConf> extends TcpS
                 // 触发的连接处理
                 ConnHandlerContext ctx1 = new ConnHandlerContext(conn);
                 HandshakeContext handshakeContext = new HandshakeContext();
-                handshakeContext.setAllParams(HttpXUtils.converUrlParams(request.uri()));
+                handshakeContext.setAllParam(HttpXUtils.converUrlParams(request.uri()));
                 ctx1.setAttach(handshakeContext);
                 getChildHandler().onConnect(ctx1);
                 return;

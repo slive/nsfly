@@ -153,7 +153,7 @@ public abstract class BaseServerSocket<C extends ServerSocketConf> extends BaseS
                 // 默认为1
                 workThreads = 1;
             }
-            workLoopGroup = new NioEventLoopGroup(workThreads, ThreadPoolUtils.newThreadFactory(prefixWork));
+            workLoopGroup = new NioEventLoopGroup(workThreads, ThreadPoolUtils.createThreadFactory(prefixWork));
         }
 
         if (GLOBAL_BOSS_LOOPGROUP != null) {
@@ -163,7 +163,21 @@ public abstract class BaseServerSocket<C extends ServerSocketConf> extends BaseS
             int bossThreads = conf.getBossThreads();
             if (bossThreads > 0) {
                 // 只初始化大于0的情况
-                bossLoopGroup = new NioEventLoopGroup(bossThreads, ThreadPoolUtils.newThreadFactory(prefixBoss));
+                bossLoopGroup = new NioEventLoopGroup(bossThreads, ThreadPoolUtils.createThreadFactory(prefixBoss));
+            }
+        }
+    }
+
+    protected void initLoopGroup(String prefixBoss) {
+        C conf = getConf();
+        if (GLOBAL_BOSS_LOOPGROUP != null) {
+            // 全局优先
+            bossLoopGroup = GLOBAL_BOSS_LOOPGROUP;
+        } else {
+            int bossThreads = conf.getBossThreads();
+            if (bossThreads > 0) {
+                // 只初始化大于0的情况
+                bossLoopGroup = new NioEventLoopGroup(bossThreads, ThreadPoolUtils.createThreadFactory(prefixBoss));
             }
         }
     }
@@ -183,7 +197,7 @@ public abstract class BaseServerSocket<C extends ServerSocketConf> extends BaseS
             if (StringUtils.isBlank(prefix)) {
                 prefix = THREAD_PREFIX_WORK;
             }
-            GLOBAL_WORK_LOOPGROUP = new NioEventLoopGroup(workThreads, ThreadPoolUtils.newThreadFactory(prefix));
+            GLOBAL_WORK_LOOPGROUP = new NioEventLoopGroup(workThreads, ThreadPoolUtils.createThreadFactory(prefix));
         }
     }
 
@@ -192,7 +206,7 @@ public abstract class BaseServerSocket<C extends ServerSocketConf> extends BaseS
             if (StringUtils.isBlank(prefix)) {
                 prefix = THREAD_PREFIX_BOSS;
             }
-            GLOBAL_BOSS_LOOPGROUP = new NioEventLoopGroup(bossThreads, ThreadPoolUtils.newThreadFactory(prefix));
+            GLOBAL_BOSS_LOOPGROUP = new NioEventLoopGroup(bossThreads, ThreadPoolUtils.createThreadFactory(prefix));
         }
     }
 

@@ -2,7 +2,7 @@ package slive.nsfly.transport.tcp.conf;
 
 /**
  * 描述：<pre>
- *     TCP相关的配置
+ *     TCP底层相关的配置
  *
  * @author Slive
  * @date 2021/6/14 11:08 上午

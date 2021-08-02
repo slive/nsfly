@@ -4,6 +4,8 @@ import slive.nsfly.transport.inter.common.map.SimpleMap;
 import slive.nsfly.transport.inter.conn.handler.ConnHandler;
 import slive.nsfly.transport.inter.conn.monitor.ConnStatis;
 
+import java.net.SocketAddress;
+
 /**
  * 描述：<pre>
  *     通信的connect连接，主要是包括读的处理和写的处理
@@ -119,4 +121,8 @@ public interface Conn extends SimpleMap<Object> {
      * 写pong，一般是收到ping后的回复
      */
     void writePong();
+
+    SocketAddress getLocalAddr();
+
+    SocketAddress getRemoteAddr();
 }

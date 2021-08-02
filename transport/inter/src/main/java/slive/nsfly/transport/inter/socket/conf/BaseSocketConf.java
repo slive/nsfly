@@ -29,8 +29,6 @@ public class BaseSocketConf implements SocketConf {
 
     private long closeTimeout = CLOSE_TIMEOUT;
 
-    private Object extConf = null;
-
     public BaseSocketConf(String ip, int port, String connType) {
         ConnType ct = ConnType.getConnType(connType);
         init(ip, port, ct);
@@ -102,15 +100,6 @@ public class BaseSocketConf implements SocketConf {
     @Override
     public void setCloseTimeout(long closeTimeout) {
         this.closeTimeout = closeTimeout;
-    }
-
-    @Override
-    public <E extends Object> E getExtConf() {
-        return (E) extConf;
-    }
-
-    protected void setExtConf(Object extConf) {
-        this.extConf = extConf;
     }
 
     @Override

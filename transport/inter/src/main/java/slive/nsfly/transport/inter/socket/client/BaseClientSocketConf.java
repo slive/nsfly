@@ -13,6 +13,8 @@ public class BaseClientSocketConf extends BaseSocketConf implements ClientSocket
 
     private boolean pingOnIdle = false;
 
+    private Object extConf = null;
+
     public BaseClientSocketConf(String ip, int port, String connType) {
         super(ip, port, connType);
     }
@@ -29,5 +31,14 @@ public class BaseClientSocketConf extends BaseSocketConf implements ClientSocket
     @Override
     public void setPingOnIdle(boolean pingOnIdle) {
         this.pingOnIdle = pingOnIdle;
+    }
+
+    @Override
+    public <E extends Object> E getExtConf() {
+        return (E) extConf;
+    }
+
+    protected void setExtConf(Object extConf) {
+        this.extConf = extConf;
     }
 }

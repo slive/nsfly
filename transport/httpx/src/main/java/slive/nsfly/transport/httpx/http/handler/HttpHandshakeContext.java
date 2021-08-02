@@ -1,11 +1,9 @@
 package slive.nsfly.transport.httpx.http.handler;
 
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpRequest;
 import slive.nsfly.transport.httpx.common.HttpXUtils;
 import slive.nsfly.transport.inter.conn.handler.frame.HandshakeContext;
 
-import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +54,7 @@ public class HttpHandshakeContext extends HandshakeContext {
     }
 
     private void mergeToAllParams(Map<String, Object> inputParams) {
-        Map<String, Object> allParams = getAllParams();
+        Map<String, Object> allParams = getAllParam();
         if (allParams == null || inputParams == null) {
             return;
         }

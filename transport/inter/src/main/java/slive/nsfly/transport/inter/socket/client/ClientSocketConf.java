@@ -23,4 +23,11 @@ public interface ClientSocketConf extends SocketConf {
      * @return
      */
     void setPingOnIdle(boolean pingOnIdle);
+
+    /**
+     * 获取扩展的配置
+     *
+     * @return
+     */
+    <E extends Object> E getExtConf();
 }

@@ -11,6 +11,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>kcp</artifactId>
+    <name>kcp</name>
+    <packaging>jar</packaging>
+    <description>kcp相关协议，参考https://github.com/skywind3000/kcp</description>
+    <dependencies>
+        <dependency>
+            <groupId>io.jpower.kcp</groupId>
+            <artifactId>kcp-netty</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>slive.nsfly</groupId>
+            <artifactId>inter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 
 </project>
